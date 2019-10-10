@@ -4,12 +4,9 @@
 
 package org.mozilla.fenix.ui
 
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mozilla.fenix.helpers.AndroidAssetDispatcher
@@ -22,11 +19,8 @@ import org.mozilla.fenix.ui.robots.navigationToolbar
  *  Tests for verifying basic functionality of history
  *
  */
-
 class HistoryTest {
     /* ktlint-disable no-blank-line-before-rbrace */ // This imposes unreadable grouping.
-
-    private val mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     private lateinit var mockWebServer: MockWebServer
 
     @get:Rule
@@ -43,52 +37,185 @@ class HistoryTest {
     @After
     fun tearDown() {
         mockWebServer.shutdown()
+        // Clearing all history data after each test to avoid overlapping data
     }
 
-    @Ignore("This is a stub test, ignore for now")
     @Test
     fun noHistoryItemsInCacheTest() {
-        homeScreen { }.dismissOnboarding()
-
-        // Verify "Your Library" in 3-dot menu is visible
-        // Verify "History" line-item in library is visible
-        // Verify "No history here" is visible
-        // Verify "History" UI elements
+        homeScreen {
+        }.openThreeDotMenu {
+            verifyLibraryButton()
+        }.openLibrary {
+            verifyHistoryButton()
+        }.openHistory {
+            verifyHistoryMenuView()
+            verifyEmptyHistoryView()
+        }
     }
 
-    @Ignore("This is a stub test, ignore for now")
     @Test
-    fun historyTest() {
-        // Setup:
-        //  - Visit a URL
-        //  - Visit a second URL
-        // Verify browser view exists for each visit
-        // Verify "Your Library" in 3-dot menu is visible
-        // Click "Your Library"
-        // Verify "History" line-item in Library is visible
-        // Click "History"
-        // Verify "History" UI elements (view is visible)
-        // Verify history is added, URLs match history added in Library
-
-        // Verify history 3-dot menu functions:
-        // 1. Delete
-
-        // Verify history visibility in new URL search
-
-        // Verify "Delete history"
-        // Verify "This will delete all your browsing data."
-        // Verify "No history here" UI element
-
-        // Verify return to "Your Library"
-    }
-
-    @Ignore("This is a sample test, ignore")
-    @Test
-    fun sampleTest() {
-        val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+    fun visitedUrlHistoryTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
 
         navigationToolbar {
-        }.enterURLAndEnterToBrowser(defaultWebPage.url) {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            verifyHistoryMenuView()
+            verifyVisitedTimeTitle()
+            verifyFirstTestPageTitle("Test_Page_1")
+            verifyTestPageUrl(firstWebPage.url)
+        }
+    }
+
+    @Test
+    fun deleteHistoryItemTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            openOverflowMenu()
+            clickThreeDotMenuDelete()
+            verifyEmptyHistoryView()
+        }
+    }
+
+    @Test
+    fun deleteAllHistoryTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            clickDeleteHistoryButton()
+            verifyDeleteConfirmationMessage()
+            confirmDeleteAllHistory()
+            verifyEmptyHistoryView()
+        }
+    }
+
+    @Test
+    fun multiSelectionToolbarTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            longTapSelectItem(firstWebPage.url)
+            verifyMultiSelectionCheckmark()
+            verifyMultiSelectionCounter()
+            verifyShareButton()
+            verifyMultiSelectionOverflowMenu()
+        }
+    }
+
+    @Test
+    fun openHistoryInNewTabTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            longTapSelectItem(firstWebPage.url)
+            openMultiSelectionOverflowMenu()
+        }.clickOpenNewTab {
+            verifyTabTitle("Test_Page_1")
+            verifyOpenTabsHeader()
+        }
+    }
+
+    @Test
+    fun openHistoryInPrivateTabTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            longTapSelectItem(firstWebPage.url)
+            openMultiSelectionOverflowMenu()
+        }.clickOpenPrivateTab {
+            verifyTabTitle("Test_Page_1")
+            verifyPrivateSessionHeader()
+        }
+    }
+
+    @Test
+    fun deleteMultipleSelectionTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+        val secondWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 2)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openNavigationToolbar {
+        }.enterURLAndEnterToBrowser(secondWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            longTapSelectItem(firstWebPage.url)
+            longTapSelectItem(secondWebPage.url)
+            openMultiSelectionOverflowMenu()
+            clickMultiSelectionDelete()
+            verifyEmptyHistoryView()
+        }
+    }
+
+    @Test
+    fun shareButtonTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+        }.openHomeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+            longTapSelectItem(firstWebPage.url)
+            clickShareButton()
+            verifyShareScrim()
+            verifyShareTabFavicon()
+            verifyShareTabTitle()
+            verifyShareTabUrl()
+        }
+    }
+
+    @Test
+    fun verifyBackNavigation() {
+        homeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+        }.goBack {
+            verifyLibraryView()
+        }
+    }
+
+    @Test
+    fun verifyCloseMenu() {
+        homeScreen {
+        }.openThreeDotMenu {
+        }.openLibrary {
+        }.openHistory {
+        }.closeMenu {
+            verifyHomeScreen()
         }
     }
 }

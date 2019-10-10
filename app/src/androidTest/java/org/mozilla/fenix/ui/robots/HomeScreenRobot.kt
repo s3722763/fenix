@@ -14,6 +14,8 @@ import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.Visibility
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
+import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiScrollable
@@ -74,6 +76,8 @@ class HomeScreenRobot {
     fun verifyCloseTabsButton(visible: Boolean = true) = assertCloseTabsButton(visible)
 
     fun verifyExistingTabList() = assertExistingTabList()
+
+    fun verifyTabTitle(expectedTitle: String) = assertTabTitle(expectedTitle)
 
     private fun scrollToElementByText(text: String): UiScrollable {
         val appView = UiScrollable(UiSelector().scrollable(true))
@@ -321,3 +325,7 @@ private fun assertExistingTabList() =
         .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
 
 private fun tabsListThreeDotButton() = onView(allOf(ViewMatchers.withId(R.id.tabs_overflow_button)))
+
+private fun assertTabTitle(expectedTitle: String) =
+    onView(withId(R.id.tab_title))
+        .check(matches(withText(expectedTitle)))
